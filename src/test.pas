@@ -48,6 +48,7 @@ var
  failed:Boolean;
  oldSerial:SmallInt;
  info:Filter_info;
+
 implementation
  procedure  sound_play;forward;
 {$R *.lfm}
@@ -113,47 +114,26 @@ for i:=1 to StringResult.RowCount-1 do
   if show_parameters[i].AUnit='KHz' then show_parameters[i].Value:=show_parameters[i].Value*1000;
   if show_parameters[i].AUnit='MHz' then show_parameters[i].Value:=show_parameters[i].Value*1000000;
   end;
+  i:=0;
   //main loop goes here.read paramters send the command receive the results load to the stringresult and
-
+    while i<High(show_parameters) do
+  begin
+  if show_parameters[i].measurement_code in [0..3,8..9,13,16,19]
+  then begin
+  hp3577.restore.span:=show_parameters[i+1].Value;
+  hp3577.restore.center:=show_parameters[i].Value;
+  hp3577.restore.span:=(hp3577.restore.span*0.2)+hp3577.restore.span;
+  if show_parameters[i].measurement_code in [8..9,13,16,19,2] then inc(i,3)
+  else if show_parameters[i].measurement_code in[0,3] then inc (i,2);
+  end;
+  inc(i);
+  end;
   if  prologix.config then  //config proloxig communicate with the machine.
  // begin
    prologix.connect;
   //removed in final version
   prologix.Write_Data('IPR;BD0;FM1;DCH');//Reset and initialize as fast as possible.
   sleep(sleep_time);
- { for i:=Low(show_parameters) to high(Show_parameters) do
-  begin
-    if show_parameters[i].measurement_code in [0..3,8..9,13,16,19] then
-    begin
-      if not HP3577.calibration_proc.IL then begin
-        if i < High(show_parameters) then begin
-        hp3577.callibration:=hp3577.calibrate(show_parameters[i].Value,show_parameters[i+1].Value,1); //make calibration
-        Requested_Center:=show_parameters[i].Value;
-        Requested_span:=show_parameters[i+1].Value;
-        end;
-      end;
-      end;
-
-    if show_parameters[i].measurement_code in [10..11] then
-    begin
-      if not HP3577.calibration_proc.S22 then begin
-        if i < High(show_parameters) then
-          hp3577.callibration:=hp3577.calibrate(show_parameters[i].Value,show_parameters[i+1].Value,3); //make calibration
-      end;
-    end;
-
-    if show_parameters[i].measurement_code in [14,15,7,17] then
-    begin
-      if not HP3577.calibration_proc.GD then begin
-        if i < High(show_parameters) then
-          hp3577.callibration:=hp3577.calibrate(show_parameters[i].Value,show_parameters[i+1].Value,2); //make calibration
-      end;
-    end;
-  end;
-  if MessageDlg('Calibration Routine','Calibration is over. Press Yes to store and continue',mtwarning,[mbYes, mbNo],0)=mrYes then
-   ShowMessage('Enter a Filter on the Jig and press ok');
-  end;}
-
   i:=0;
   row_idx:=1;
 
@@ -301,7 +281,7 @@ begin
  else
  qtext.Visible:=False;
 
- Restore_View(actual_center,((actual_span*0.2)+actual_span));
+ Restore_View(hp3577.restore.center,hp3577.restore.span);
  prologix.release;
  end;
 
@@ -616,6 +596,7 @@ end;
     begin
       Windows.Beep(800, 150);  // High tone
       Windows.Beep(600, 150);  // Lower tone
+      //prologix.Write_Data('Beep');
     end;
 
    end;

@@ -456,7 +456,7 @@ begin
     Result[High(Result)].Name:=self.SQLQuery1.FieldByName('name').AsString;
     Result[High(Result)].Value:=self.SQLQuery1.FieldByName('value').AsFloat;
     Result[High(Result)].AUnit:=self.SQLQuery1.FieldByName('unit').AsString;
-     Result[High(Result)].measurement_code:=self.SQLQuery1.FieldByName('measurement_code').AsInteger;
+    Result[High(Result)].measurement_code:=self.SQLQuery1.FieldByName('measurement_code').AsInteger;
 
 
    self.SQLQuery1.Next;

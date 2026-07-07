@@ -5,7 +5,7 @@ unit prologix;
 interface
 
 uses
-  Classes, SysUtils,Serial,Forms,LazSerial,Dialogs;
+  Classes, SysUtils,Serial,Forms,LazSerial,Dialogs,inifiles;
      Function config:Boolean;
      Function close:Boolean;
      procedure Write_Data(data:String);
@@ -20,9 +20,10 @@ Function config:Boolean;
    R:String;
    x,status:Integer;
    found:Boolean;
+  configFile:TInifile;
 begin
  found:=False;
- status:=0;
+ status:=0; x:=0;
 
   try
   if  not Serials.connect_dialog then begin ShowMessage('Error With the Serial Port ');Result:=False;Exit; end;
@@ -45,9 +46,8 @@ begin
   // Serial Polling. Send and receive answer. If 0 then
   //Serial.WriteData('++spoll'+ #10);
   //wait for instrument  response
-  Sleep(50);
-
-  Except
+  //Sleep(50);
+   Except
     on E: EInOutError do
     begin
      Result:=False;
@@ -75,22 +75,42 @@ begin
   Exit;
  end;
     try
-     connect;
+    connect;
+    configFile:=TIniFile.Create(ExtractFilePath(application.Params[0])+'settings.ini');
+   if FileExists(ExtractFilePath(application.Params[0])+'settings.ini') then
+   x:=configFile.ReadInteger('VNA','Address',0);
+   if x=0 then    //file contains wrong information
+   DeleteFile(ExtractFilePath(application.Params[0])+'settings.ini')
+   else
+   begin   //confirm address is correct
+    R:='';
+     serials.LazSerial1.SynSer.Purge;
+     Serials.LazSerial1.WriteData('++addr ' + IntToStr(x)+ #10);
+     Serials.LazSerial1.WriteData('ID?'+sLineBreak);
+     sleep(100);
+     R:=   Serials.LazSerial1.ReadData;
+     if (not String.IsNullOrEmpty(R)) and (R.Contains('3577')) then
+     found:=True; //instrument responded.
+     end;
+   if not found then //if answer not found
     for x := 1 to 30 do
     begin
        Serials.LazSerial1.WriteData('++addr ' + IntToStr(x)+ #10);
-    //ppurge the RS232 connection
+    //purge the RS232 connection
    Serials.LazSerial1.SynSer.Purge;
    // HP3577A read ID
        Serials.LazSerial1.WriteData('ID?'+sLineBreak);
     Sleep(100); // give time to the instrument to execute the command
      R:='';
      R:=   Serials.LazSerial1.ReadData;
+         // if R<>'' then ShowMessage(R+' '+IntToStr(x));
      if (not String.IsNullOrEmpty(R)) and (R.Contains('3577')) then
      begin
+
     //  ShowMessage('FOUND device at address ' + IntToStr(x) );
       if R.Contains('TESTSET') then
       begin
+     configFile.writeInteger('VNA','Address',x);//save the address.
      // ShowMessage('Instrument Found with S-Parameters');
       Result:=True;
       found := True;
@@ -155,8 +175,9 @@ begin
                  sleep(sleep_time);
                   if prologix.isopen then begin
                   repeat
-                  inputs:=Serials.LazSerial1.ReadData;
-                  if (inputs<>'') or (pos(input,#10)>0) then break;
+                  inputs:=Serials.LazSerial1.ReadData;      //special char of prologix
+
+                  if (inputs<>'') or (pos(inputs,#10)>0) or (pos(inputs,'<0>')>0) then break;
                   sleep(sleep_time);
                   inc(temp);
                   until temp>20;

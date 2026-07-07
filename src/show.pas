@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  TAGraph, TASeries, TATransformations, Serial;
+  TAGraph, TASeries, TATransformations, Serial,prologix;
 
 type
 
@@ -163,15 +163,18 @@ end;
 end;
 procedure TfrmShow.FormActivate(Sender: TObject);
 begin
+if prologix.config then begin
 timer1.Enabled:=False;
 Timer1.Interval:=1000;
      if  not serials.LazSerial1.Active then serials.connect_dialog;
+        init;
    frmshow.top:=(Screen.DesktopHeight-frmshow.Height) div 2;
    frmshow.left:=(screen.DesktopWidth-frmshow.Width)div 2;
     read_data;
     timer1.Enabled:=True;
-      end;
 
+      end;
+                             end;
 procedure TfrmShow.btnSaveJpgClick(Sender: TObject);
 begin
   SaveChartAsJPG(Chart1, GetUserDir + 'Desktop' + PathDelim + 'Chart.jpg');
@@ -214,7 +217,7 @@ Serials.LazSerial1.WriteData('BD0;'+'FM1;'+'DCH'+sLineBreak);
   end;
 Serials.LazSerial1.SynSer.Purge;//Clear The RS232
 initialize:=True;
-//Serials.LazSerial1.WriteData('DT1'+sLineBreak);
+Serials.LazSerial1.WriteData('DT1'+sLineBreak);
 end;
 
 procedure TfrmShow.SaveChartAsJPG(AChart: TChart; const FileName: string);

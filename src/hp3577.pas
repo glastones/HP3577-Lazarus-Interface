@@ -20,7 +20,10 @@ S11:Boolean;
 S22:Boolean;
 GD:boolean;
 end;
-
+restore_values=Record
+center:Real;
+span:real;
+end;
 
     function calibrate(fcenter,fspan:real;measurement:SmallInt):Calibrate_variables;
     function IL(fcenter,fspan:Real;types:smallInt):Real;
@@ -38,12 +41,13 @@ procedure Marker_AutoScale(Marker1Value, Marker2Value: Double;
       function bandwidth(Fcenter,Fspan,x:Real;type_or_measurement:smallInt):Real;
       function bandwidth_x_db(fcenter,fspan,x:Real):Real;
       procedure restore_view(Fcenter,fspan:Real);
-                  const sleep_time=250;   //no more than 500ms
+                  const sleep_time=800;   //no more than 500ms no less 200
       const stable_measurement=2;
       var
             // sleep_time:Integer;
              callibration:Calibrate_variables;
              calibration_proc:Calibration_process;
+             restore:Restore_values;
             implementation
  var
 
@@ -66,7 +70,9 @@ begin
       cal:=False;
       while not cal do
       begin
-        command:='I21;DF7;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTN;DM1';
+        command:='I21;DF7;FRC '+FloatToStr(fcenter)+' Hz';
+        prologix.Write_Data(command);
+        command:='FRS '+FloatToStr(fspan)+' Hz;MTN;DM1';
         prologix.Write_Data(command);
         Result.call_S21:=prologix.read_data(sleep_time);
         if Result.call_S21<-15 then begin
@@ -87,12 +93,24 @@ else calibration_proc.IL:=false;
 begin
 if not calibration_proc.GD then
   begin
-  command:='I21;DF1;AP4;BW3;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MKP 0;MP1';
-   prologix.Write_Data(command);
-   temp:=prologix.read_data(sleep_time);
-   command:='I21;DF1;AP4;BW3;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MKP 400;MP1';
-   prologix.Write_Data(command);
-   Result.cal_GD:=fspan-(prologix.read_data(sleep_time)-temp);
+  command:='I21;DF1;AP4;BW3';
+  prologix.Write_Data(command);
+  command:='FRC '+FloatToStr(fcenter)+' Hz';
+  prologix.Write_Data(command);
+  command:='FRS '+FloatToStr(fspan)+' Hz';
+  prologix.Write_Data(command);
+  command:='MKP 0;MP1';
+  prologix.Write_Data(command);
+  temp:=prologix.read_data(sleep_time);
+  command:='I21;DF1;AP4;BW3';
+  prologix.Write_Data(command);
+  command:='FRC '+FloatToStr(fcenter)+' Hz';
+  prologix.Write_Data(command);
+  command:='FRS '+FloatToStr(fspan)+' Hz';
+  prologix.Write_Data(command);
+  command:='MKP 400;MP1';
+  prologix.Write_Data(command);
+  Result.cal_GD:=fspan-(prologix.read_data(sleep_time)-temp);
        calibration_proc.GD:=True;
        command:='BW4';//return IF=1KHz
        prologix.Write_Data(command);
@@ -104,10 +122,22 @@ if not calibration_proc.S11 then
   begin
 if MessageDlg('Calibration Routine','Leave the port open',mtwarning,[mbYes, mbNo],0)=mrYes then
 begin
-  command:='I22;DF7;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTN;DM1';
+  command:='I22;DF7';
+  prologix.Write_Data(command);
+  command:='FRC '+FloatToStr(fcenter)+' Hz';
+  prologix.Write_Data(command);
+  command:='FRS '+FloatToStr(fspan)+' Hz';
+  prologix.Write_Data(command);
+  command:='MTN;DM1';
    prologix.Write_Data(command);
    Result.call_S22:=prologix.read_data(sleep_time);
-   command:='I11;DF7;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTN;DM1';
+   command:='I11;DF7';
+   prologix.Write_Data(command);
+   command:='FRC '+FloatToStr(fcenter)+' Hz';
+   prologix.Write_Data(command);
+   command:='FRS '+FloatToStr(fspan)+' Hz';
+   prologix.Write_Data(command);
+   command:='MTN;DM1';
    prologix.Write_Data(command);
    Result.call_S11:=prologix.read_data(sleep_time);
       calibration_proc.S11:=True;
@@ -131,10 +161,17 @@ end;
  var
              temp:real;
  begin
-       command:='I21;DF7;DIV 1 DBR;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTX;DM1';
+       temp:=0;
+       command:='I21;DF7;DIV 1 DBR';
+       prologix.Write_Data(command);
+       command:='FRC '+FloatToStr(fcenter)+' Hz';
+       prologix.Write_Data(command);
+       command:='FRS '+FloatToStr(fspan)+' Hz';
+       prologix.Write_Data(command);
+       command:='MTX;MO0;DM1';
        prologix.Write_Data(command);
        temp:=prologix.read_data(sleep_time);
-       if temp<=3 then Result:=1
+       if Abs(ceil(temp))<=3 then Result:=1
        else Result:=temp-1;//find the scale and make it reference.
  end;
 
@@ -142,25 +179,17 @@ function IL(fcenter,fspan:Real;types:smallInt):Real; //1 IL 2 IL from center
 
 begin
         Result:=0;
-        command:='I21;DF7;DIV 1 DBR;FRC '+FloatToStr(fcenter)+' Hz';
+               command:='I21;DF7;DIV 1 DBR';
+               prologix.Write_Data(command);
+               command:='FRC '+FloatToStr(fcenter)+' Hz';
                prologix.Write_Data(command);
                command:='FRS '+FloatToStr(fspan)+' Hz';
                prologix.Write_Data(command);
+                          case types of
+0:     command:='MTX;DM1';
 
-                    case types of
-0:Begin //command:='I21;DF7;DIV 1 DBR;FRC '+FloatToStr(fcenter)+' Hz';
-          //     prologix.Write_Data(command);
-        //command:='FRS '+FloatToStr(fspan)+' Hz';
-          //     prologix.Write_Data(command);
-        command:='MTX;DM1';
-             end;
+1:    command:='MKP 200;DM1';
 
-1: begin   //command:='I21;DF7;DIV 1 DBR;FRC '+FloatToStr(fcenter)+' Hz';
-             //  prologix.Write_Data(command);
-           //command:='FRS '+FloatToStr(fspan)+' Hz';
-            //   prologix.Write_Data(command);
-           command:='MKP 200;DM1';
-            end;
 end;
        prologix.Write_Data(command);
       Result:=prologix.read_data(sleep_time)-callibration.call_S21;
@@ -172,18 +201,25 @@ end;
 case input of
       10://s11
         begin
-    command:='I11;DF7;DIV 5 DBR;FRC '+FloatToStr(fcenter)+' Hz';
+    command:='I11;DF7;DIV 5 DBR';
+    prologix.Write_Data(command);
+    command:='FRC '+FloatToStr(fcenter)+' Hz';
     prologix.Write_Data(command);
     command:='FRS '+FloatToStr(fspan)+' Hz';
     prologix.Write_Data(command);
     command:='MTX;MP1';
-
     prologix.Write_Data(command);
    Result:=prologix.read_data(sleep_time)-callibration.call_S11;
     end;
       11://s22
         begin
-    command:='I22;DF7;DIV 5 DBR;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTX;MP1';
+    command:='I22;DF7;DIV 5 DBR';
+    prologix.Write_Data(command);
+   command:='FRC '+FloatToStr(fcenter)+' Hz';
+   prologix.Write_Data(command);
+   command:='FRS '+FloatToStr(fspan)+' Hz';
+   prologix.Write_Data(command);
+    command:='MTX;MP1';
     prologix.Write_Data(command);
     Result:=prologix.read_data(sleep_time)-callibration.call_S22;
     end;
@@ -243,16 +279,18 @@ prologix.Write_Data(command);
        prologix.Write_Data(command);
         Result:=prologix.read_data(sleep_time);
  prologix.Write_Data('BW4');// IF=1KHz
+ if Type_of_measurment in [7,14,17] then
+ prologix.Write_Data('MO0');// remove Zero Marking for the new measurement
       end;
 
 
       function Ripple(Fcenter,Fspan:Real):Real;
-      var
-                  i:smallInt;
       begin
 
           Result:=0;
-         command:='I21;DF7;DIV 1 DBR;FRC '+FloatToStr(fcenter)+' Hz';
+          command:='I21;DF7;DIV 1 DBR';
+         prologix.Write_Data(command);
+         command:='FRC '+FloatToStr(fcenter)+' Hz';
          prologix.Write_Data(command);
        // sleep(sleep_time);
          command:='FRS '+FloatToStr(fspan*0.8)+' Hz';
@@ -262,6 +300,7 @@ prologix.Write_Data(command);
          prologix.Write_Data(command);
         //sleep(sleep_time);
       Result:=prologix.read_data(sleep_time);
+      prologix.Write_Data('MO0');//Remove Zero Marking
        end;
 
 
@@ -271,7 +310,13 @@ prologix.Write_Data(command);
    begin
       ref:=0;Result:=0;temp_left:=0;temp_right:=0;
        if Abs(x)>5 then begin scale:=2; ref:=Abs(x)-scale; ref:=ref*(-1);  end else  scale:=1;
-   command:='I21;DF7;DIV '+floattoStr(scale)+' DBR; REF '+FloatToStr(ref)+' DBR; FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz';
+   command:='I21;DF7;DIV '+floattoStr(scale)+' DBR';
+   prologix.Write_Data(command);
+   command:='REF '+FloatToStr(ref)+' DBR';
+   prologix.Write_Data(command);
+   command:='FRC '+FloatToStr(fcenter)+' Hz';
+   prologix.Write_Data(command);
+   command:='FRS '+FloatToStr(fspan)+' Hz';
    prologix.Write_Data(command);
    command:='MRT;MP1';
    prologix.Write_Data(command);
@@ -287,8 +332,26 @@ prologix.Write_Data(command);
   temp_left,temp_Right,scale,ref:Real;
    begin
    change:=False;scale:=1;ref:=0;
-if Abs(x)>10 then begin change:=True; prologix.Write_Data('BW3');scale:=10;ref:=Abs(x)-scale;ref:=ref*(-1); end else prologix.Write_Data('BW1');
-  command:='I21;DF7;DIV '+FloatToStr(scale)+' DBR; REF '+FloatToStr(ref)+' DBR;FRC '+FloatToStr(fcenter)+' Hz; FRS '+FloatToStr(fspan)+' Hz;MTX;ZMK;MTV '+FloatToStr(x)+' DBR';
+if Abs(x)>10 then begin
+change:=True;
+prologix.Write_Data('BW3'); //Lower IF
+scale:=10;
+ref:=Abs(x)-scale;
+ref:=ref*(-1);
+end
+else prologix.Write_Data('BW4');//Restore IF
+  command:='I21;DF7;DIV '+FloatToStr(scale)+' DBR';
+  prologix.Write_Data(command);
+  command:='REF '+FloatToStr(ref)+' DBR';
+  prologix.Write_Data(command);
+  command:='FRC '+FloatToStr(fcenter)+' Hz';
+  prologix.Write_Data(command);
+  command:='FRS '+FloatToStr(fspan)+' Hz';
+  prologix.Write_Data(command);
+  command:='MTX;ZMK';
+  prologix.Write_Data(command);
+  command:='MTV '+FloatToStr(x)+' DBR';
+    prologix.Write_Data(command);
   command:='MRT;MP1';
   prologix.Write_Data(command);
   temp_Left:=prologix.read_data(sleep_time);
@@ -296,7 +359,8 @@ if Abs(x)>10 then begin change:=True; prologix.Write_Data('BW3');scale:=10;ref:=
   prologix.Write_Data(command);
   temp_Right:=prologix.read_data(sleep_time);
   Result:=(temp_right-temp_left);
-  if change then prologix.Write_Data('BW3');
+  if change then prologix.Write_Data('BW4');//restore IF
+  prologix.Write_Data('MO0');//Remove Zero Marking
   end;
  function attn_at_Freq(Fcenter,fspan,atten_freq:Real;type_of_measure:smallInt):Real;
  var
@@ -322,20 +386,29 @@ if outside then fspan := new_span;
   case type_of_measure of
   12://Atten. at freq. (min/max);  relative attenuation
   begin
- prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz; FRS ' + FloatToStr(fspan) + 'Hz;MKP ' + FloatToStr(position) + ';MTX;ZMK;');//make zero at max
+ prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz');
+ prologix.Write_Data('FRS ' + FloatToStr(fspan) + 'Hz');
+ prologix.Write_Data('MKP ' + FloatToStr(position) + ';MTX;ZMK;');//make zero at max
   //need rounding
   if frac(position) <> 0 then
 begin
    position := ceil(position);
      // interpolattion
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz; FRS ' + FloatToStr(fspan) + 'Hz;MKP ' + FloatToStr(position) + ';DM1');
+prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + ' Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + ' Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position) + ';DM1');
 temp := prologix.read_data(sleep_time);
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz; FRS ' + FloatToStr(fspan) + 'Hz;MKP ' + FloatToStr(position-1) + ';DM1');
-  Result := (temp+prologix.read_data(sleep_time))/2;
+prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + 'Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position-1) + ';DM1');
+Result := (temp+prologix.read_data(sleep_time))/2;
   end
   else //fspan is correct
   begin
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + 'Hz; FRS ' + FloatToStr(fspan) + 'Hz;MKP ' + FloatToStr(position) + ';DM1');
+prologix.Write_Data('I21;DF7;DIV 10 DBR');
+prologix.Write_Data('FRC ' + FloatToStr(fcenter) + 'Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + 'Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position) + ';DM1');
 Result := prologix.read_data(sleep_time);
 end;
      end;
@@ -345,21 +418,33 @@ end;
 begin
    position := ceil(position);
      // interpolattion
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz;MKP ' + FloatToStr(position) + ';DM1');
+prologix.Write_Data('I21;DF7;DIV 10 DBR');
+prologix.Write_Data('FRC ' + FloatToStr(fcenter) + ' Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + ' Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position) + ';DM1');
 temp := prologix.read_data(sleep_time);
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz;MKP ' + FloatToStr(position-1) + ';DM1');
-  Result := (temp+prologix.read_data(sleep_time))/2;
+prologix.Write_Data('I21;DF7;DIV 10 DBR');
+prologix.Write_Data('FRC ' + FloatToStr(fcenter) + ' Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + ' Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position-1) + ';DM1');
+Result := (temp+prologix.read_data(sleep_time))/2;
   end
   else //fspan is correct
   begin
-prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz;MKP ' + FloatToStr(position) + ';DM1');
+prologix.Write_Data('I21;DF7;DIV 10 DBR');
+prologix.Write_Data('FRC ' + FloatToStr(fcenter) + ' Hz');
+prologix.Write_Data('FRS ' + FloatToStr(fspan) + ' Hz');
+prologix.Write_Data('MKP ' + FloatToStr(position) + ';DM1');
 Result := prologix.read_data(sleep_time);
    end;
 
    end;
   4://Attenuation at stopband search min
    begin
-   prologix.Write_Data('I21;DF7;DIV 10 DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz;MKP ' + FloatToStr(position) + ';DM1');
+   prologix.Write_Data('I21;DF7;DIV 10 DBR');
+   prologix.Write_Data('FRC ' + FloatToStr(fcenter) + ' Hz');
+   prologix.Write_Data('FRS ' + FloatToStr(fspan) + ' Hz');
+   prologix.Write_Data('MKP ' + FloatToStr(position) + ';DM1');
   end;
   end;
 
@@ -375,24 +460,33 @@ Result := prologix.read_data(sleep_time);
  Right_Limit:=High_freq-Fcenter;
  Span:=Right_Limit+left_limit; //use this span for the measurment.
  if abs(x)>10 then scale:=10 else scale:=5;
-if x>60 then begin change:=True; prologix.Write_Data('BW3');end else begin change:=False; prologix.Write_Data('BW4');end;
- command:='I21;DF7;DIV '+FloatToStr(scale)+' DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz';
+if x>60 then begin
+change:=True;
+prologix.Write_Data('BW3');//Lower IF
+end
+else
+begin
+change:=False;
+prologix.Write_Data('BW4');//Restore IF
+end;
+command:='I21;DF7;DIV '+FloatToStr(scale)+' DBR';
+prologix.Write_Data(command);
+command:='FRC ' + FloatToStr(fcenter) + ' Hz';
+prologix.Write_Data(command);
+command:='FRS ' + FloatToStr(span) + ' Hz';
  prologix.Write_Data(command);
- command:='MKP 200;MTX;ZMK';
+ command:='MTX;ZMK';
   prologix.Write_Data(command);
  // sleep(sleep_time);
   case left_or_right of
-  4: begin
-  command:='MKP 0;DM1';
-  end;
-  5:begin
-  command:='MKP 400;DM1';
-  end;
+  4: command:='MKP 0;DM1';
+  5: command:='MKP 400;DM1';
   end;
    prologix.Write_Data(command);
 //   sleep(sleep_time);
    Result:= prologix.read_data(sleep_time);
    if change then begin prologix.Write_Data('BW4');
+   prologix.Write_Data('MO0');//remove zero marker
    //sleep(sleep_time);
    end;//restore IF=1KHz
    end;
@@ -403,15 +497,21 @@ if x>60 then begin change:=True; prologix.Write_Data('BW3');end else begin chang
    ref:=0;
    Result:=0;
   scale:=find_scale(fcenter,fspan);
-  if  scale> 5 then begin ref:=scale-1;ref:=ref*(1); end;
-if x>60 then prologix.Write_Data('BW3') else prologix.Write_Data('BW1');
+  if  scale> 5 then begin ref:=scale-1;ref:=ref*(-1); end;
+if x>60 then prologix.Write_Data('BW3') else prologix.Write_Data('BW4');
  case type_or_measurement of
 //  bandwith 0-xdf from cf
   19:begin
-  command:='I21;DF7;DIV 1 DBR; REF ' +FloatToStr(ref)+' DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz';
-    prologix.Write_Data(command);
+  command:='I21;DF7;DIV 1 DBR';
+  prologix.Write_Data(command);
+  command:='REF ' +FloatToStr(ref)+' DBR';
+  prologix.Write_Data(command);
+  command:='FRC ' + FloatToStr(fcenter) + ' Hz';
+  prologix.Write_Data(command);
+  command:='FRS ' + FloatToStr(fspan) + ' Hz';
+  prologix.Write_Data(command);
   command:='MKP 200;ZMK;MTV '+FloatToStr(x)+' DBR';
-    prologix.Write_Data(command);
+  prologix.Write_Data(command);
   command:='MRT;MP1';//search Right
   prologix.Write_Data(command);
   //scale:=prologix.read_data(sleep_time);
@@ -424,29 +524,49 @@ if x>60 then prologix.Write_Data('BW3') else prologix.Write_Data('BW1');
 
   8,9,13:begin
 
-    command:='I21;DF7;DIV 1 DBR; REF ' +FloatToStr(ref)+' DBR; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(fspan) + ' Hz;MTX;ZMK;MTV '+FloatToStr(x)+' DBR;MRT;DM1';//search Right
+    command:='I21;DF7;DIV 1 DBR';
+    prologix.Write_Data(command);
+    command:='REF ' +FloatToStr(ref)+' DBR';
+    prologix.Write_Data(command);
+    command:='FRC ' + FloatToStr(fcenter) + ' Hz';
+    prologix.Write_Data(command);
+    command:='FRS ' + FloatToStr(fspan) + ' Hz';
+    prologix.Write_Data(command);
+    command:='MTX;ZMK;MTV '+FloatToStr(x)+' DBR;MRT;MP1';//search Right
   prologix.Write_Data(command);
   scale:=prologix.read_data(sleep_time);
-  command:='MLT'; //search Left
+  command:='MLT;MP1'; //search Left
   prologix.Write_Data(command);
+  //sleep(sleep_time);
   ref:=prologix.read_data(sleep_time);
-  Result:=scale+Ref;
+  command:='MO0'; //search Left
+ prologix.Write_Data(command);
+  Result:=Abs(scale)+Abs(Ref);
   end;
   end;
 end;
 function spurious_ultimate( Fcenter,zero_span,stop_span:real):Real;
 begin
 if zero_span<=0 then zero_span:=stop_span/2;
-command:='I21;DF7;DIV 2 DBR;BW3;FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(zero_span) + ' Hz';
+command:='I21;DF7;DIV 2 DBR;BW3';
+prologix.Write_Data(command);
+command:='FRC ' + FloatToStr(Restore.center) + ' Hz';
+prologix.Write_Data(command);
+command:='FRS ' + FloatToStr(Restore.span) + ' Hz';
 prologix.Write_Data(command);
 command:='MTX;ZMK';//find center frequency max
 prologix.Write_Data(command);
-command:='I21;DF7;DIV 10 DBR;BW3; FRC ' + FloatToStr(fcenter) + ' Hz; FRS ' + FloatToStr(stop_span) + ' Hz';
+command:='I21;DF7;DIV 10 DBR;BW3';
+prologix.Write_Data(command);
+command:='FRC ' + FloatToStr(fcenter) + ' Hz';
+prologix.Write_Data(command);
+command:='FRS ' + FloatToStr(stop_span) + ' Hz';
 prologix.Write_Data(command);
 command:='MTN;DM1';//find at stopband spurious/ulimate max
 prologix.Write_Data(command);
 Result:=prologix.read_data(sleep_time);
-prologix.Write_Data('BW4');
+prologix.Write_Data('BW4'); //Restore IFBW=1KHz
+prologix.Write_Data('MO0');//remove zero marker
 end;
 
 function Next125(x: Double): Double;
@@ -499,11 +619,15 @@ end;
             var
               ref:Real;
             begin
-             ref:=find_scale(Fcenter,Fspan);
-             command:='FRC '+FloatToStr(Fcenter)+' Hz;FRS '+FloatToStr(Fspan)+' Hz';
+             ref:=(-1)*(find_scale(Fcenter,Fspan));
+             command:='FRC '+FloatToStr(Fcenter)+' Hz';
              prologix.Write_Data(command);
-             command:='DIV 1 DRB;REF '+FloatToStr(ref)+' HZ;MKP 200';
+             command:='FRS '+FloatToStr(Fspan)+' Hz';
              prologix.Write_Data(command);
+             // sleep(sleep_time);
+             command:='DIV 1 DRB;REF '+FloatToStr(ref)+' DBR;MKP 200';
+             prologix.Write_Data(command);
+             //sleep(sleep_time);
              end;
 
 initialization
@@ -512,6 +636,8 @@ initialization
 calibration_proc.S22:=False;
 calibration_proc.IL:=False;
 calibration_proc.GD:=False;
+restore.center:=0;
+restore.span:=0;
 end;
 
 

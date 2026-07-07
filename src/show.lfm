@@ -2,10 +2,10 @@ object frmShow: TfrmShow
   Left = 224
   Height = 805
   Top = 121
-  Width = 1587
+  Width = 1284
   Caption = 'frmShow'
   ClientHeight = 805
-  ClientWidth = 1587
+  ClientWidth = 1284
   Font.CharSet = ANSI_CHARSET
   Font.Height = -16
   Font.Pitch = fpVariable
@@ -560,7 +560,7 @@ object frmShow: TfrmShow
     Left = 8
     Height = 928
     Top = 0
-    Width = 1579
+    Width = 1276
     AllowPanning = False
     AxisList = <    
       item

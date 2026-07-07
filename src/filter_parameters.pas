@@ -299,10 +299,7 @@ lblParameter4.Caption:='Reference Position in db ';
      Show_controls(5,5,2);
       show_to_user[5]:=1; variable_for_Result[5]:=1;
      lblParameter5.Caption:=' Value in -x db  ';
-
-
-
-          autocomplete;
+             autocomplete;
  end;
 
  12:begin
@@ -396,9 +393,6 @@ lblParameter4.Caption:='Reference Position in db ';
 end;
 
 end;
-
-
-
 
 procedure TfrmParameters.btnNextClick(Sender: TObject);
 var
@@ -619,13 +613,28 @@ end;
                      // count) and let SaveMeasurement store one row per parameter.
                       SetLength(P, 15);   // upper bound, trimmed below
                      n := 0;
-                     for i :=  Low(data_description)  to High(data_description) do
+                     for i :=  Low(data_description)  to High(data_description) do  begin
                        if data_description[i] <> '' then
                        begin
                          if data_punit[i] <> '' then
-                           UnitStr := data_punit[i]
-                         else
-                           UnitStr := 'dB'; // default for dB-scale parameters
+                         case data_punit[i] of
+                          'Hz': begin
+                           end;
+                             'KHz':
+                                 begin
+                             data_Values[i]:=data_Values[i]*1000;
+                              data_punit[i]:='Hz';
+                                 end;
+                             'MHz':begin
+                             data_Values[i]:=data_Values[i]*1000000;
+                             data_punit[i]:='Hz';
+                             end;
+                          else
+                          UnitStr := 'dB'; // default for dB-scale parameters
+
+                         end;
+                           UnitStr := data_punit[i];
+                           end;
                          P[n].Name  := data_description[i];
                          P[n].Value := data_values[i];
                          P[n].AUnit := UnitStr;
@@ -635,7 +644,7 @@ end;
                          P[n].measurement_Type:=Trim(cboMeasurement.Items[cboMeasurement.ItemIndex]);
                          P[n].Result_code:=variable_for_Result[i];
                          Inc(n);
-                           end;
+                         end;
                        SetLength(P, n);    // exact number of parameters
 
                      try
@@ -726,7 +735,6 @@ end;
    CBOAR[i].Visible:=False;
    CBOAR[i].ItemIndex:=0;
     end;
-
 
    CBOAR[4].Items.Clear;
    CBOAR[4].Items.Add('Hz');
