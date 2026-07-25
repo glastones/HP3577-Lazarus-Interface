@@ -1,0 +1,88 @@
+object frmShow_correct: TfrmShow_correct
+  Left = 251
+  Height = 665
+  Top = 169
+  Width = 1606
+  Caption = 'Show Parameters and correct'
+  ClientHeight = 665
+  ClientWidth = 1606
+  Font.CharSet = ANSI_CHARSET
+  Font.Height = -16
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
+  LCLVersion = '4.8.0.0'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  object DBGrid1: TDBGrid
+    Left = 32
+    Height = 88
+    Top = 106
+    Width = 920
+    Anchors = [akLeft, akRight, akBottom]
+    Color = clWindow
+    Columns = <>
+    Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAutoSizeColumns, dgDisplayMemoText]
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 45
+    Height = 25
+    Top = 32
+    Width = 315
+    Caption = 'Select Filter To edit from the available'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -19
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+  end
+  object cboName: TComboBox
+    Left = 45
+    Height = 33
+    Top = 58
+    Width = 259
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -19
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ItemHeight = 25
+    ParentFont = False
+    TabOrder = 1
+    Text = 'Filter List'
+    OnChange = cboNameChange
+  end
+  object DBGrid2: TDBGrid
+    Left = 32
+    Height = 256
+    Top = 208
+    Width = 1526
+    Color = clWindow
+    Columns = <>
+    Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAutoSizeColumns, dgDblClickAutoSize, dgDisplayMemoText]
+    TabOrder = 2
+  end
+  object DBNavigator1: TDBNavigator
+    Left = 216
+    Height = 52
+    Hint = 'if you now familiar with this do not use it. Should '#13#10'destroy entire database.'
+    Top = 480
+    Width = 415
+    BevelOuter = bvNone
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 100
+    ClientHeight = 52
+    ClientWidth = 415
+    DataSource = DataModule1.DataSource2
+    Options = []
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+    OnClick = DBNavigator1Click
+  end
+end
