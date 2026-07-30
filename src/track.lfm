@@ -1,0 +1,111 @@
+object frmTrack: TfrmTrack
+  Left = 692
+  Height = 240
+  Top = 272
+  Width = 320
+  Caption = 'Track'
+  ClientHeight = 240
+  ClientWidth = 320
+  LCLVersion = '4.8.0.0'
+  OnCreate = FormCreate
+  object Start: TButton
+    Left = 33
+    Height = 45
+    Top = 140
+    Width = 95
+    Caption = 'Start'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 0
+    OnClick = StartClick
+  end
+  object Stop: TButton
+    Left = 184
+    Height = 45
+    Top = 140
+    Width = 95
+    Caption = 'Stop'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 1
+    OnClick = StopClick
+  end
+  object Label1: TLabel
+    Left = 33
+    Height = 21
+    Top = 13
+    Width = 116
+    Caption = 'Enter Time in ms'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 33
+    Height = 21
+    Top = 60
+    Width = 110
+    Caption = 'Type of tracking'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+  end
+  object spTime: TSpinEdit
+    Left = 176
+    Height = 29
+    Top = 13
+    Width = 79
+    Alignment = taCenter
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 2
+    OnChange = spTimeChange
+    OnEditingDone = spTimeEditingDone
+  end
+  object chkMax: TCheckBox
+    Left = 160
+    Height = 25
+    Top = 56
+    Width = 47
+    Caption = 'Max'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 3
+    OnChange = chkMaxChange
+  end
+  object chkMin: TCheckBox
+    Left = 224
+    Height = 25
+    Top = 56
+    Width = 45
+    Caption = 'Min'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 4
+    OnChange = chkMinChange
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 155
+    Top = 200
+  end
+end
