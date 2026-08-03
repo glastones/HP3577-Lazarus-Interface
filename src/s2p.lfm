@@ -1,0 +1,144 @@
+object frmS2P: TfrmS2P
+  Left = 742
+  Height = 240
+  Top = 303
+  Width = 540
+  Caption = 'Make S2P File'
+  ClientHeight = 240
+  ClientWidth = 540
+  LCLVersion = '4.8.0.0'
+  OnCreate = FormCreate
+  object btnExport_S2P: TButton
+    Left = 208
+    Height = 59
+    Top = 168
+    Width = 133
+    Caption = 'Export S2P'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 0
+    OnClick = btnExport_S2PClick
+  end
+  object txtStartFreq: TEdit
+    Left = 160
+    Height = 29
+    Top = 32
+    Width = 102
+    Alignment = taCenter
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 1
+    Text = 'txtStartFreq'
+    OnKeyPress = txtStartFreqKeyPress
+  end
+  object txtStopFreq: TEdit
+    Left = 160
+    Height = 29
+    Top = 72
+    Width = 102
+    Alignment = taCenter
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 2
+    Text = 'txtStopFreq'
+    OnKeyPress = txtStopFreqKeyPress
+  end
+  object Label1: TLabel
+    Left = 37
+    Height = 21
+    Top = 32
+    Width = 108
+    Alignment = taCenter
+    Caption = 'Start Frequency'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 37
+    Height = 21
+    Top = 72
+    Width = 104
+    Alignment = taCenter
+    Caption = 'Stop Frequenct'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+  end
+  object cboUntis_StartFreq: TComboBox
+    Left = 296
+    Height = 29
+    Top = 32
+    Width = 100
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ItemHeight = 21
+    Items.Strings = (
+      'Hz'
+      'KHZ'
+      'MHZ'
+    )
+    ParentFont = False
+    TabOrder = 3
+    Text = 'cboUntis_StartFreq'
+  end
+  object cboUnits_StopFreq: TComboBox
+    Left = 296
+    Height = 29
+    Top = 78
+    Width = 100
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ItemHeight = 21
+    Items.Strings = (
+      'Hz'
+      'KHZ'
+      'MHZ'
+    )
+    ParentFont = False
+    TabOrder = 4
+    Text = 'cboUnits_StopFreq'
+  end
+  object ProgressBar: TProgressBar
+    Left = 37
+    Height = 20
+    Top = 136
+    Width = 457
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 5
+  end
+  object StaticText1: TStaticText
+    Left = 43
+    Height = 21
+    Top = 112
+    Width = 215
+    Caption = 'Please Wait as we measure all Parameters'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 6
+  end
+end

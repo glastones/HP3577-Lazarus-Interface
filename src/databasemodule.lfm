@@ -1,0 +1,54 @@
+object DataModule1: TDataModule1
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  Height = 488
+  HorizontalOffset = 403
+  VerticalOffset = 235
+  Width = 827
+  object SQLite3Connection1: TSQLite3Connection
+    Connected = False
+    LoginPrompt = False
+    DatabaseName = 'C:\Users\Me\Desktop\new VNA\Simply_VNA_Full.db'
+    KeepConnection = False
+    Transaction = SQLTransaction1
+    HostName = 'localHost'
+    AlwaysUseBigint = False
+    Left = 336
+    Top = 104
+  end
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Action = caCommit
+    Database = SQLite3Connection1
+    Left = 336
+    Top = 152
+  end
+  object SQLQuery1: TSQLQuery
+    FieldDefs = <>
+    Database = SQLite3Connection1
+    Transaction = SQLTransaction1
+    Params = <>
+    Macros = <>
+    Left = 224
+    Top = 112
+  end
+  object DataSource1: TDataSource
+    DataSet = SQLQuery1
+    Left = 224
+    Top = 176
+  end
+  object SQLQuery2: TSQLQuery
+    FieldDefs = <>
+    Database = SQLite3Connection1
+    Transaction = SQLTransaction1
+    Params = <>
+    Macros = <>
+    Left = 160
+    Top = 112
+  end
+  object DataSource2: TDataSource
+    DataSet = SQLQuery1
+    Left = 160
+    Top = 184
+  end
+end
